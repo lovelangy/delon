@@ -26,9 +26,11 @@ import {
   DatePipe,
   YNPipe,
   ModalHelper,
+  ModalHelperOptions,
   ALAIN_I18N_TOKEN,
   AlainI18NService,
-  ModalHelperOptions,
+  DrawerHelper,
+  DrawerHelperOptions
 } from '@delon/theme';
 import {
   deepCopy,
@@ -200,10 +202,10 @@ export class STComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input()
   footer: string | TemplateRef<void>;
   /** 额外 `body` 内容 */
-  @ContentChild('body')
+  @Input()
   body: TemplateRef<void>;
   /** `expand` 可展开，当数据源中包括 `expand` 表示展开状态 */
-  @ContentChild('expand')
+  @Input()
   expand: TemplateRef<{ $implicit: any; column: STColumn }>;
   @Input()
   noResult: string | TemplateRef<void>;
@@ -219,6 +221,7 @@ export class STComponent implements AfterViewInit, OnChanges, OnDestroy {
   readonly change: EventEmitter<STChange> = new EventEmitter<STChange>();
   /** 行单击多少时长之类为双击（单位：毫秒），默认：`200` */
   @Input()
+  @InputNumber()
   rowClickTime = 200;
 
   @Input()
@@ -237,7 +240,7 @@ export class STComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Output()
   readonly checkboxChange: EventEmitter<STData[]> = new EventEmitter<
     STData[]
-  >();
+    >();
   /**
    * radio变化时回调，参数为当前所选
    * @deprecated 使用 `change` 替代
@@ -267,7 +270,7 @@ export class STComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Output()
   readonly rowClick: EventEmitter<STChangeRowClick> = new EventEmitter<
     STChangeRowClick
-  >();
+    >();
   /**
    * 行双击回调
    * @deprecated 使用 `change` 替代
@@ -276,7 +279,7 @@ export class STComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Output()
   readonly rowDblClick: EventEmitter<STChangeRowClick> = new EventEmitter<
     STChangeRowClick
-  >();
+    >();
   //#endregion
 
   constructor(
@@ -290,6 +293,7 @@ export class STComponent implements AfterViewInit, OnChanges, OnDestroy {
     @Inject(ALAIN_I18N_TOKEN)
     i18nSrv: AlainI18NService,
     private modalHelper: ModalHelper,
+    private drawerHelper: DrawerHelper,
     @Inject(DOCUMENT) private doc: any,
     private columnSource: STColumnSource,
     private dataSource: STDataSource,
@@ -305,9 +309,9 @@ export class STComponent implements AfterViewInit, OnChanges, OnDestroy {
   renderTotal(total: string, range: string[]) {
     return this.totalTpl
       ? this.totalTpl
-          .replace('{{total}}', total)
-          .replace('{{range[0]}}', range[0])
-          .replace('{{range[1]}}', range[1])
+        .replace('{{total}}', total)
+        .replace('{{range[0]}}', range[0])
+        .replace('{{range[1]}}', range[1])
       : '';
   }
 
@@ -605,6 +609,20 @@ export class STComponent implements AfterViewInit, OnChanges, OnDestroy {
         .pipe(filter(w => typeof w !== 'undefined'))
         .subscribe(res => this.btnCallback(record, btn, res));
       return;
+    } else if (btn.type === 'drawer') {
+      const obj = {};
+      const { drawer } = btn;
+      obj[drawer.paramsName] = record;
+      const options: DrawerHelperOptions = Object.assign({}, drawer);
+      this.drawerHelper.create(
+        drawer.title,
+        drawer.component,
+        Object.assign(obj, drawer.params && drawer.params(record)),
+        Object.assign({}, drawer)
+      )
+        .pipe(filter(w => typeof w !== 'undefined'))
+        .subscribe(res => this.btnCallback(record, btn, res));
+      return;
     } else if (btn.type === 'link') {
       const clickRes = this.btnCallback(record, btn);
       if (typeof clickRes === 'string') {
@@ -642,11 +660,11 @@ export class STComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   /**
    * 导出当前页，确保已经注册 `XlsxModule`
-   * @param urlOrData 重新指定数据，例如希望导出所有数据非常有用
+   * @param newData 重新指定数据，例如希望导出所有数据非常有用
    * @param opt 额外参数
    */
-  export(urlOrData?: any[], opt?: STExportOptions) {
-    (urlOrData ? of(urlOrData) : of(this._data)).subscribe((res: any[]) =>
+  export(newData?: any[], opt?: STExportOptions) {
+    (newData ? of(newData) : of(this._data)).subscribe((res: any[]) =>
       this.exportSrv.export(
         Object.assign({}, opt, <STExportOptions>{
           _d: res,

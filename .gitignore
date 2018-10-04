@@ -10,8 +10,10 @@ yarn.lock
 *.iml
 dist
 coverage
-src/app/routes/gen
-publish
 .idea
 debug.log
-_scaffold
+
+src/app/routes/gen
+/scaffold
+/_scaffold
+/ng-alain

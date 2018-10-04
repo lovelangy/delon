@@ -27,14 +27,28 @@ ng-alain 是一个企业级中后台前端/设计解决方案脚手架，我们�
 
 ## 安装
 
+### CLI（推荐）
+
 ```bash
-ng new demo --style less
-cd demo
+# 确保使用的是最新版本 Angular cli
+ng new my-project --style less
+cd my-project
 ng add ng-alain@next
 ng serve
 ```
 
 请参考[命令行工具](/cli)了解更多细节。
+
+### 克隆代码
+
+```bash
+git clone --depth=1 https://github.com/ng-alain/ng-alain.git my-project
+cd my-project
+yarn
+ng serve
+```
+
+> 注：使用CLI安装，是一个干净的脚手架；使用克隆代码会包含所有示例。
 
 ## 目录结构
 
@@ -84,6 +98,9 @@ $ ng serve
 启动完成后会打开浏览器访问 [//localhost:4200](//localhost:4200)，若你看到如下页面则代表成功了。
 
 ![](./assets/screenshot/desktop.png | width=700)
+
+
+如果您使用方法一安装，则右边只有部分菜单。
 
 ## 如何贡献
 
